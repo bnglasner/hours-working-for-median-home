@@ -157,6 +157,10 @@ annual_data <- annual_data %>%
     )
   )
 
+
+setwd(path_output)
+write.xlsx(annual_data, file = "Annual Data.xlsx")
+
 # First plot: Monthly mortgage hours
 p1 <- plot_ly(
   data = annual_data,

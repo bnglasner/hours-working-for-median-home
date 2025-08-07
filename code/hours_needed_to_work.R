@@ -33,11 +33,13 @@ path_project <- project_directories[[current_user]]
 path_data    <- file.path(path_project, "data")
 path_output  <- file.path(path_project, "output")
 
+
 ###########################
 ###   Load Data         ###
 ###########################
+setwd(path_data)
 
-# Median Wage (monthly by decile)
+# Median Wage (monthly by decile and already adjusted using monthly PCE at 2025-01-01 levels)
 wages <- read_excel(file.path(path_data, "Decile Monthly Wage.xlsx")) %>%
   mutate(date = ymd(observation_date)) %>%
   select(date, wage_50th)
@@ -56,17 +58,11 @@ mortgage_rates <- read_excel(file.path(path_data, "MORTGAGE30US.xlsx"), sheet = 
 pce_deflator <- read_excel(file.path(path_data, "PCEPILFE.xlsx"), sheet = 2) %>%
   mutate(date = ymd(observation_date),
          year = year(date)) %>%
-  rename(pce_index_2017 = `PCEPILFE`) %>%
-  mutate(pce_index_2017 = if_else(date == "2025-01-01", 125.2348, pce_index_2017))
+  rename(pce_index_2025 = `PCEPILFE_NBD20250101`) %>%
+  group_by(year) %>%
+  summarise(pce_index_2025 = mean(pce_index_2025, na.rm = TRUE)) %>%
+  ungroup()
 
-# 2025-01-01	124.407
-# 2025-02-01	124.999
-# 2025-03-01	125.118
-# 2025-04-01	125.343
-# 2025-05-01	125.610
-# 2025-06-01	125.932
-
-# (124.407 + 124.999 + 125.118 + 125.343 + 125.610 + 125.932)/6
 
 ############################
 ###   Prepare Dataset    ###
@@ -93,7 +89,7 @@ annual_data <- annual_data %>%
 
 # Normalize to 2017 dollars
 annual_data <- annual_data %>%
-  mutate(deflator = 100/pce_index_2017 ) %>%
+  mutate(deflator = 100/pce_index_2025 ) %>%
   mutate(
     median_home_price_real  = median_home_price_nominal*deflator
   )
@@ -177,7 +173,7 @@ p1 <- plot_ly(
     yaxis = list(
       title = "Monthly Hours Needed (Mortgage)",
       # rangemode = "tozero",
-      range = c(35,95)
+      range = c(45,115)
     ),
     showlegend = FALSE
   )
@@ -202,7 +198,7 @@ p2 <- plot_ly(
     yaxis = list(
       title = "One-Time Hours Needed (Down Payment)",
       # rangemode = "tozero",
-      range = c(1500,3000)
+      range = c(1800,3600)
     ),
     showlegend = FALSE
   )

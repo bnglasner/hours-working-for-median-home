@@ -1,4 +1,4 @@
-# Hours Needed to Afford a Median-Priced Home (1971–2025)
+# Hours Needed to Afford a Median-Priced Home
 
 **Author**: Ben Glasner  
 **Last updated**: August 7, 2025
